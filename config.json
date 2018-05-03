@@ -1,0 +1,38 @@
+{
+  "title": "Accio Post Position Manager",
+  "namespace": "Accio/PostPositionManager",
+  "organization": "Accio",
+  "baseURL": "accio/post-position-manager",
+  "description ": "Post Position Manager plugin",
+  "version": "1.0.0",
+  "icon": "pencil",
+
+  "author" : [
+    {
+      "name" : "Accio LLC",
+      "email": "jetmir.haxhisefa@accio.com"
+    }
+  ],
+
+  "dependencies" : [],
+
+  "panels": {
+    "post_articles": {
+      "name": "post",
+      "path": "PostPanel.vue",
+      "placement": "all"
+    }
+  },
+
+  "mix": {
+    "app": "./plugins/Accio/PostPositionManager/resources/assets/js/app.js",
+    "public": "./plugins/Accio/PostPositionManager/public/js"
+  },
+
+  "permissions":{
+    "defaultPermissions": [
+      "create", "read", "update", "delete"
+    ]
+  }
+
+}

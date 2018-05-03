@@ -1,0 +1,7 @@
+{
+  "name": "acciocms/seo-plugin",
+  "description": "The official Accio SEO plugin",
+  "keywords": ["accio", "seo"],
+  "license": "MIT",
+  "type": "project"
+}
