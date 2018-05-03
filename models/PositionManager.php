@@ -2,6 +2,8 @@
 
 namespace Plugins\Accio\PostPositionManager\Models;
 
+
+use App\Models\Post;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -25,11 +27,20 @@ class PositionManager extends Model{
     public static function getPostsWithPosition(){
         $cache = Cache::has("posts_with_position");
         if(!$cache || !count($cache)){
-            $posts = DB::table("post_articles")
+            $postsTmp = DB::table("post_articles")
                 ->join('accio_post_position_manager', 'post_articles.postID', '=', 'accio_post_position_manager.postID')
                 ->orderBy("positionKey")
                 ->get()
                 ->keyBy("positionKey");
+
+            $posts = [];
+            foreach ($postsTmp as $key => $postTmp){
+                $p = new Post();
+                $p->setRawAttributes((array) $postTmp);
+                $posts[$key] = $p;
+            }
+
+            $posts = Collection::make($posts);
 
             Cache::forever('posts_with_position',$posts);
         }
