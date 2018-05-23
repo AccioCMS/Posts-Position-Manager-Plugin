@@ -44,16 +44,18 @@ class Plugin implements PluginInterface {
     }
 
     private function store($data, $post){
-        $position = $data['pluginsData']['Accio_PostPositionManager_post']['position'];
-        $postID = $post->postID;
+        if(isset($data['pluginsData']['Accio_PostPositionManager_post'])){
+            $position = $data['pluginsData']['Accio_PostPositionManager_post']['position'];
+            $postID = $post->postID;
 
-        if($position){
-            PositionManager::where('positionKey', $position)->orWhere('postID', $postID)->delete();
-            Cache::forget('posts_with_position');
-            $postPosition = new PositionManager();
-            $postPosition->positionKey = $position;
-            $postPosition->postID = $postID;
-            $postPosition->save();
+            if($position){
+                PositionManager::where('positionKey', $position)->orWhere('postID', $postID)->delete();
+                Cache::forget('posts_with_position');
+                $postPosition = new PositionManager();
+                $postPosition->positionKey = $position;
+                $postPosition->postID = $postID;
+                $postPosition->save();
+            }
         }
     }
 
@@ -62,8 +64,7 @@ class Plugin implements PluginInterface {
      *
      * @return void
      */
-    public function boot(){
-    }
+    public function boot(){}
 
     /**
      * @param Command $command
