@@ -48,14 +48,18 @@ class Plugin implements PluginInterface {
             $position = $data['pluginsData']['Accio_PostPositionManager_post']['position'];
             $postID = $post->postID;
 
+            // remove posts that belongs to this position
+            PositionManager::where('positionKey', $position)->orWhere('postID', $postID)->delete();
+
             if($position){
-                PositionManager::where('positionKey', $position)->orWhere('postID', $postID)->delete();
-                Cache::forget('posts_with_position');
                 $postPosition = new PositionManager();
                 $postPosition->positionKey = $position;
                 $postPosition->postID = $postID;
                 $postPosition->save();
             }
+
+            // clean caches
+            Cache::forget('posts_with_position');
         }
     }
 
