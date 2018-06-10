@@ -34,10 +34,11 @@ class PositionManager extends Model{
                 ->keyBy("positionKey");
 
             $posts = [];
+
             foreach ($postsTmp as $key => $postTmp){
-                $p = new Post();
-                $p->setRawAttributes((array) $postTmp);
-                $posts[$key] = $p;
+                $post = new Post();
+                $post->setRawAttributes((array) $postTmp);
+                $posts[$key] = $post;
             }
 
             $posts = Collection::make($posts);
@@ -46,6 +47,14 @@ class PositionManager extends Model{
         }
 
         return Cache::get("posts_with_position");
+    }
+
+    /**
+     * Get current positions
+     * @return \Illuminate\Database\Eloquent\Collection|PositionManager[]
+     */
+    public static function getCurrentPositions(){
+        return self::all()->keyBy("postID");
     }
 
 }

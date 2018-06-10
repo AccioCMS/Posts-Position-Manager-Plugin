@@ -2,6 +2,7 @@
 
 namespace Plugins\Accio\PostPositionManager;
 
+use App\Models\Post;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Schema;
@@ -41,6 +42,8 @@ class Plugin implements PluginInterface {
         Event::listen('post:stored', function ($data, $model) {
             $this->store($data, $model);
         });
+
+        $this->eventAppendListColumns();
     }
 
     private function store($data, $post){
@@ -85,5 +88,38 @@ class Plugin implements PluginInterface {
         }
 
         return true;
+    }
+
+    /**
+     * addDefaultListColumns
+     * @return $this
+     */
+    private function eventAppendListColumns(){
+        $currentPositions = PositionManager::getCurrentPositions()->keyBy('postID')->toArray();
+
+        // add position column to post lists
+        Event::listen('post:table_list_columns', function ($postType) {
+            if($postType == 'post_articles') {
+                return [
+                  'position' => __('Accio.PostPositionManager::base.position')
+                ];
+            }
+        });
+
+        // add position rows to post lists
+        Event::listen('post:table_list_rows', function ($results, $postType) use ($currentPositions) {
+            if($postType == 'post_articles') {
+                $rows = [];
+                foreach ($results as $key => $item) {
+                    $post = (new Post())->setRawAttributes((array)$item);
+                    if (isset($currentPositions[$post->postID])) {
+                        $rows[$key]['position'] = $currentPositions[$post->postID]['positionKey'];
+                    }
+                }
+                return $rows;
+            }
+        });
+
+        return $this;
     }
 }
