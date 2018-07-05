@@ -21,32 +21,34 @@ class PositionManager extends Model{
     protected $primaryKey = "positionManagerID";
 
     /**
-     * Get posts with position
+     * Get posts with position.
+     *
+     * @param array $with
      * @return Collection of posts
      */
-    public static function getPostsWithPosition(){
-        $cache = Cache::has("posts_with_position");
-        if(!$cache || !count($cache)){
-            $postsTmp = DB::table("post_articles")
-                ->join('accio_post_position_manager', 'post_articles.postID', '=', 'accio_post_position_manager.postID')
-                ->orderBy("positionKey")
-                ->get()
-                ->keyBy("positionKey");
+    public static function getPostsWithPosition( $with = []){
+        $data = Cache::get("posts_with_position");
 
-            $posts = [];
+        $cacheInstance = Post::initializeCache(Post::class, 'posts_with_position', []);
 
-            foreach ($postsTmp as $key => $postTmp){
-                $post = new Post();
-                $post->setRawAttributes((array) $postTmp);
-                $posts[$key] = $post;
+        if(!$data){
+            $postObj = (new Post());
+            $data = $postObj->join('accio_post_position_manager', 'post_articles.postID', '=', 'accio_post_position_manager.postID');
+
+            if($with){
+                $data = $data->with($with);
+            }else{
+                $data = $data->with($postObj->getDefaultRelations(getPostType('post_articles')));
             }
 
-            $posts = Collection::make($posts);
+            $data = $data->orderBy("positionKey")
+              ->get()
+              ->keyBy("positionKey")->toArray();
 
-            Cache::forever('posts_with_position',$posts);
+            Cache::forever('posts_with_position',$data);
         }
 
-        return Cache::get("posts_with_position");
+        return $cacheInstance->setCacheCollection($data);
     }
 
     /**
