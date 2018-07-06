@@ -37,27 +37,33 @@ class PositionManager extends Model{
         }
 
         $takenPositions = [];
-        /**
-         * Get only the latest post in a position
-         */
+        $positionIDsToBeDeleted = [];
+
+        // Get only the latest post in a position
         foreach($positions as $key => $position){
             if (in_array($position->positionKey, $takenPositions)){
+                array_push($positionIDsToBeDeleted, $position->positionManagerID);
                 unset($positions[$key]);
             }else{
                 array_push($takenPositions, $position->positionKey);
             }
         }
+
+        // delete outdated positions
+        if ($positionIDsToBeDeleted){
+            $positionsToBeDeleted = PositionManager::whereIn('positionManagerID', $positionIDsToBeDeleted);
+            if($positionsToBeDeleted){
+                $positionsToBeDeleted->delete();
+            }
+        }
+
         $postIDs = $positions->pluck("postID");
-
-
         $articlesCache = Post::cache()->getItems()->whereIn("postID", $postIDs);
         if(!$articlesCache){
             return collect();
         }
 
-        /**
-         * Get post object of each position
-         */
+        // Get post object of each position
         $positions = $positions->map(function ($item, $key) use ($articlesCache){
             $single_post = $articlesCache->where('postID',$item->postID)->first();
             $single_post->positionKey = $item->positionKey;
