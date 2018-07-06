@@ -3,13 +3,17 @@
 namespace Plugins\Accio\PostPositionManager\Models;
 
 
+use Accio\App\Traits\CacheTrait;
 use App\Models\Post;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class PositionManager extends Model{
+    use CacheTrait;
+
     /**
      * @var string table name
      */
@@ -21,34 +25,46 @@ class PositionManager extends Model{
     protected $primaryKey = "positionManagerID";
 
     /**
-     * Get posts with position.
+     * Get posts with positions
      *
-     * @param array $with
-     * @return Collection of posts
+     * @return Collection|static
+     * @throws \Exception
      */
-    public static function getPostsWithPosition( $with = []){
-        $data = Cache::get("posts_with_position");
-
-        $cacheInstance = Post::initializeCache(Post::class, 'posts_with_position', []);
-
-        if(!$data){
-            $postObj = (new Post());
-            $data = $postObj->join('accio_post_position_manager', 'post_articles.postID', '=', 'accio_post_position_manager.postID');
-
-            if($with){
-                $data = $data->with($with);
-            }else{
-                $data = $data->with($postObj->getDefaultRelations(getPostType('post_articles')));
-            }
-
-            $data = $data->orderBy("positionKey")
-              ->get()
-              ->keyBy("positionKey")->toArray();
-
-            Cache::forever('posts_with_position',$data);
+    public static function getPostsWithPosition(){
+        $positions = self::cache()->getItems()->where('published_at', "<=", Carbon::now())->sortBy('published_at', SORT_REGULAR, true);
+        if (!$positions){
+            return collect();
         }
 
-        return $cacheInstance->setCacheCollection($data);
+        $takenPositions = [];
+        /**
+         * Get only the latest post in a position
+         */
+        foreach($positions as $key => $position){
+            if (in_array($position->positionKey, $takenPositions)){
+                unset($positions[$key]);
+            }else{
+                array_push($takenPositions, $position->positionKey);
+            }
+        }
+        $postIDs = $positions->pluck("postID");
+
+
+        $articlesCache = Post::cache()->getItems()->whereIn("postID", $postIDs);
+        if(!$articlesCache){
+            return collect();
+        }
+
+        /**
+         * Get post object of each position
+         */
+        $positions = $positions->map(function ($item, $key) use ($articlesCache){
+            $single_post = $articlesCache->where('postID',$item->postID)->first();
+            $single_post->positionKey = $item->positionKey;
+            return $single_post;
+        });
+
+        return $positions->sortBy('positionKey');
     }
 
     /**

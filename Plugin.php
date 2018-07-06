@@ -52,12 +52,13 @@ class Plugin implements PluginInterface {
             $postID = $post->postID;
 
             // remove posts that belongs to this position
-            PositionManager::where('positionKey', $position)->orWhere('postID', $postID)->delete();
+            PositionManager::where('postID', $postID)->delete();
 
             if($position){
                 $postPosition = new PositionManager();
                 $postPosition->positionKey = $position;
                 $postPosition->postID = $postID;
+                $postPosition->published_at = $post->published_at;
                 $postPosition->save();
             }
 
