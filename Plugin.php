@@ -120,4 +120,8 @@ class Plugin implements PluginInterface {
 
         return $this;
     }
+
+    public function update(){
+        return true;
+    }
 }
