@@ -52,7 +52,7 @@ class Plugin implements PluginInterface {
             $postID = $post->postID;
 
             // remove posts that belongs to this position
-            PositionManager::where('postID', $postID)->delete();
+            PositionManager::where('postID', $postID)->orWhere('positionKey', $position)->delete();
 
             if($position){
                 $postPosition = new PositionManager();
@@ -61,6 +61,9 @@ class Plugin implements PluginInterface {
                 $postPosition->published_at = $post->published_at->format('Y-m-d H:i:s');
                 $postPosition->save();
             }
+
+            // clean caches
+            Cache::forget('PositionManager');
         }
     }
 
