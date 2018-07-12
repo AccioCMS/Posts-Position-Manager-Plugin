@@ -32,9 +32,10 @@ class PositionManager extends Model{
      */
     public static function getPostsWithPosition(){
         $positions = self::cache()->getItems()->where('published_at', "<=", Carbon::now())->sortBy('published_at', SORT_REGULAR, true);
-        if (!$positions){
+        if ($positions->isEmpty()){
             return collect();
         }
+
 
         $takenPositions = [];
         $positionIDsToBeDeleted = [];
@@ -49,7 +50,7 @@ class PositionManager extends Model{
             }
         }
 
-        // delete outdated positions
+        // Delete outdated positions
         if ($positionIDsToBeDeleted){
             $positionsToBeDeleted = PositionManager::whereIn('positionManagerID', $positionIDsToBeDeleted);
             if($positionsToBeDeleted){
@@ -59,7 +60,7 @@ class PositionManager extends Model{
 
         $postIDs = $positions->pluck("postID");
         $articlesCache = Post::cache()->getItems()->whereIn("postID", $postIDs);
-        if(!$articlesCache){
+        if($articlesCache->isEmpty()){
             return collect();
         }
 

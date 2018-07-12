@@ -58,12 +58,9 @@ class Plugin implements PluginInterface {
                 $postPosition = new PositionManager();
                 $postPosition->positionKey = $position;
                 $postPosition->postID = $postID;
-                $postPosition->published_at = $post->published_at;
+                $postPosition->published_at = $post->published_at->format('Y-m-d H:i:s');
                 $postPosition->save();
             }
-
-            // clean caches
-            Cache::forget('posts_with_position');
         }
     }
 
