@@ -47,7 +47,7 @@ class Plugin implements PluginInterface {
     }
 
     private function store($data, $post){
-        if(isset($data['pluginsData']['Accio_PostPositionManager_post'])){
+        if(isset($data['pluginsData']['Accio_PostPositionManager_post']['position'])){
             $position = $data['pluginsData']['Accio_PostPositionManager_post']['position'];
             $postID = $post->postID;
 
