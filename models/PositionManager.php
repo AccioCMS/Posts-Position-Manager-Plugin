@@ -31,7 +31,7 @@ class PositionManager extends Model{
      * @throws \Exception
      */
     public static function getPostsWithPosition(){
-        $positions = self::cache()->getItems();
+        $positions = self::cache()->collect();
         if($positions->isEmpty()){
             return collect();
         }
@@ -58,7 +58,7 @@ class PositionManager extends Model{
 //        }
 
         $postIDs = $positions->pluck("postID");
-        $articlesCache = Post::cache("post_articles")->getItems()->published()->whereIn("postID", $postIDs);
+        $articlesCache = Post::cache("post_articles")->collect()->published()->whereIn("postID", $postIDs);
         if($articlesCache->isEmpty()){
             return collect();
         }
